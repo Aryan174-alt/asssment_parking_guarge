@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, session, render_template, redirect, url_for
+from config import Config
 from models import db, User, ParkingSpot, Vehicle, Ticket
 from parking_logic import calculate_fee, find_available_spot, clean_rate_card, set_active_rate_cards, ACTIVE_RATE_CARDS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,6 +10,7 @@ import os
 
 # ── App Factory ────────────────────────────────────────────────────
 app = Flask(__name__, static_folder='static', template_folder='templates')
+app.config.from_object(Config)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///parking_v2.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.urandom(24).hex()
