@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Garage Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="card auth-card">
+            <h2>Create an account</h2>
+            <p class="subtitle">Set up your attendant credentials.</p>
+
+            <form id="regForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Choose a username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Min 4 characters" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn btn-success" style="width:100%" id="regBtn">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="/login">Log in</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            btn.textContent = 'Creating...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.href = '/login';
+                } else {
+                    alert(data.error || 'Registration failed');
+                    btn.textContent = 'Create Account';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert('Network error');
+                btn.textContent = 'Create Account';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

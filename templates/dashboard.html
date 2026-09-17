@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Garage Manager V2</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- ── Toast Container ─────────────────────────────────────── -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ── Navbar ──────────────────────────────────────────────── -->
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <span class="logo">🏢</span> Garage Manager <span style="font-size:0.75rem; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:var(--accent-blue); padding:2px 8px; border-radius:9999px; margin-left:8px;">V2 REAL-TIME</span>
+            </div>
+            <div class="navbar-right">
+                <button class="btn btn-primary btn-sm" onclick="openCustomizerModal()">⚙️ Architecture Customizer</button>
+                <span class="navbar-user" id="navUser">Loading...</span>
+                <button class="btn btn-ghost btn-sm" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+    </div>
+
+    <div class="container">
+
+        <!-- ── Live Stats ──────────────────────────────────────── -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card blue">
+                <div class="stat-label">Total Spots</div>
+                <div class="stat-value" id="statTotal">—</div>
+            </div>
+            <div class="stat-card emerald">
+                <div class="stat-label">Available</div>
+                <div class="stat-value" id="statAvailable">—</div>
+            </div>
+            <div class="stat-card cyan">
+                <div class="stat-label">EV Spots Free</div>
+                <div class="stat-value" id="statEV">—</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-label">Standard Free</div>
+                <div class="stat-value" id="statStandard">—</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-label">Compact Free</div>
+                <div class="stat-value" id="statCompact">—</div>
+            </div>
+            <div class="stat-card rose">
+                <div class="stat-label">Occupied</div>
+                <div class="stat-value" id="statOccupied">—</div>
+            </div>
+        </div>
+
+        <!-- ── 2D Visual Garage Architecture Map ────────────────── -->
+        <div class="blueprint-card">
+            <div class="blueprint-header">
+                <div class="blueprint-title">
+                    <span>🗺️ Garage Architecture & Real-Time Map</span>
+                    <span class="live-badge"><span class="live-dot"></span> LIVE SYNC</span>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="btn btn-ghost btn-sm" onclick="loadFullMap()">↻ Sync Map</button>
+                    <button class="btn btn-primary btn-sm" onclick="openCustomizerModal()">⚙️ Reconfigure Layout</button>
+                </div>
+            </div>
+
+            <!-- Level Pills Bar -->
+            <div class="level-pills-bar" id="levelPillsBar">
+                <div class="level-pill active">Loading Levels...</div>
+            </div>
+
+            <!-- 2D Grid Visualizer -->
+            <div class="parking-grid-2d" id="parkingGrid2D">
+                <div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">
+                    Loading 2D Garage Architecture...
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Check-In / Check-Out ────────────────────────────── -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-title"><span class="icon">🚗</span> Check-In Vehicle</div>
+                <form id="checkInForm">
+                    <div class="form-group">
+                        <label for="ciPlate">License Plate</label>
+                        <input type="text" id="ciPlate" class="form-input" placeholder="e.g. ABC-1234" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ciType">Vehicle Type</label>
+                        <select id="ciType" class="form-select">
+                            <option value="regular">Regular</option>
+                            <option value="ev">Electric (EV)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width:100%">Check In Vehicle →</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🏁</span> Check-Out Vehicle</div>
+                <form id="checkOutForm">
+                    <div class="form-group">
+                        <label for="coPlate">License Plate</label>
+                        <input type="text" id="coPlate" class="form-input" placeholder="e.g. ABC-1234" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger" style="width:100%; margin-top: 76px;">Check Out & Calculate Fee →</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── Vehicle Search ──────────────────────────────────── -->
+        <div class="card search-panel">
+            <div class="card-title"><span class="icon">🔍</span> Vehicle Lookup</div>
+            <div style="display:flex; gap:12px;">
+                <input type="text" id="searchPlate" class="form-input" placeholder="Search by license plate..." style="flex:1">
+                <button class="btn btn-primary" onclick="searchVehicle()">Search</button>
+            </div>
+            <div id="searchResult"></div>
+        </div>
+
+        <!-- ── Ticket History ──────────────────────────────────── -->
+        <div class="card" style="margin-top: 24px;">
+            <div class="card-title" style="justify-content: space-between;">
+                <span><span class="icon">📋</span> Ticket History</span>
+                <div style="display:flex; gap:8px;">
+                    <select id="statusFilter" class="form-select" style="width:auto; padding:8px 12px; font-size:0.8rem;" onchange="loadTickets(1)">
+                        <option value="">All</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <button class="btn btn-ghost btn-sm" onclick="loadTickets(1)">↻ Refresh</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Plate</th>
+                            <th>Type</th>
+                            <th>Spot</th>
+                            <th class="sortable" onclick="toggleSort('check_in_time')" id="thCheckIn">Check-In ↕</th>
+                            <th>Check-Out</th>
+                            <th class="sortable" onclick="toggleSort('fee')" id="thFee">Fee ↕</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketBody">
+                        <tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button class="btn btn-ghost btn-sm" id="prevBtn" onclick="prevPage()">← Prev</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button class="btn btn-ghost btn-sm" id="nextBtn" onclick="nextPage()">Next →</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Layout Customizer Modal ──────────────────────────────── -->
+    <div class="modal-overlay" id="customizerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ Customize Garage Architecture</div>
+                <button class="modal-close" onclick="closeCustomizerModal()">×</button>
+            </div>
+
+            <!-- Tab Switcher inside Modal -->
+            <div style="display:flex; gap:12px; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+                <button class="btn btn-ghost btn-sm active" id="modalTabGenerator" onclick="switchModalTab('generator')">🏗️ Mass Generator</button>
+                <button class="btn btn-ghost btn-sm" id="modalTabSingle" onclick="switchModalTab('single')">➕ Add Single Spot</button>
+            </div>
+
+            <!-- Mass Generator Form -->
+            <form id="massGenForm">
+                <div class="form-group">
+                    <label for="cfgLevels">Number of Floors / Levels (1 to 10)</label>
+                    <input type="number" id="cfgLevels" class="form-input" min="1" max="10" value="3" required>
+                </div>
+                <div class="form-group">
+                    <label for="cfgSpotsPerLvl">Parking Spots per Level (1 to 30)</label>
+                    <input type="number" id="cfgSpotsPerLvl" class="form-input" min="1" max="30" value="6" required>
+                </div>
+                <div class="dashboard-grid" style="margin-bottom:0; gap:12px;">
+                    <div class="form-group">
+                        <label for="cfgEV">EV Chargers / Level</label>
+                        <input type="number" id="cfgEV" class="form-input" min="0" value="2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cfgCompact">Compact Spots / Level</label>
+                        <input type="number" id="cfgCompact" class="form-input" min="0" value="2" required>
+                    </div>
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:20px;">
+                    *Remaining spots on each floor will be set to Standard bays. Note: Reconfiguring resets current unparked layout.
+                </p>
+                <button type="submit" class="btn btn-primary" style="width:100%">⚡ Rebuild Architecture Layout</button>
+            </form>
+
+            <!-- Single Spot Form -->
+            <form id="singleSpotForm" style="display:none;">
+                <div class="form-group">
+                    <label for="spotNum">Spot Number / Code (e.g. S401, EV102)</label>
+                    <input type="text" id="spotNum" class="form-input" placeholder="e.g. E105" required>
+                </div>
+                <div class="form-group">
+                    <label for="spotLvl">Floor Level</label>
+                    <input type="number" id="spotLvl" class="form-input" min="1" max="20" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="spotType">Bay Category</label>
+                    <select id="spotType" class="form-select">
+                        <option value="standard">Standard (🚘)</option>
+                        <option value="ev">EV Charger (⚡)</option>
+                        <option value="compact">Compact (🚗)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success" style="width:100%">➕ Add Spot to Architecture</button>
+            </form>
+
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Garage Manager V2 — Real-Time Visual Architecture Blueprint System</p>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         JAVASCRIPT LOGIC
+         ═══════════════════════════════════════════════════════════ -->
+    <script>
+        // ── State ──────────────────────────────────────────────
+        let currentPage = 1;
+        let currentSort = 'check_in_time';
+        let sortOrder = 'desc';
+        const LIMIT = 8;
+
+        let fullMapData = null;
+        let selectedLevel = 1;
+        let timerInterval = null;
+        let pollInterval = null;
+
+        // ── API Helper ─────────────────────────────────────────
+        async function api(url, opts = {}) {
+            const res = await fetch(url, opts);
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return null;
+            }
+            return res;
+        }
+
+        // ── Toast Notifications ────────────────────────────────
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ── Init ───────────────────────────────────────────────
+        async function init() {
+            const res = await api('/api/auth/me');
+            if (!res) return;
+            const data = await res.json();
+            if (data.logged_in) {
+                document.getElementById('navUser').textContent = `👤 ${data.username}`;
+            }
+            loadStats();
+            loadFullMap();
+            loadTickets(1);
+
+            // Auto-refresh poll every 4 seconds for real-time state sync
+            pollInterval = setInterval(() => {
+                loadFullMap(true);
+                loadStats();
+            }, 4000);
+
+            // Live timer ticker every 1 second
+            timerInterval = setInterval(updateLiveTimers, 1000);
+        }
+
+        // ── Load Stats ─────────────────────────────────────────
+        async function loadStats() {
+            const res = await api('/api/spots/summary');
+            if (!res) return;
+            const d = await res.json();
+
+            const totalAll = d.compact.total + d.standard.total + d.ev.total;
+            const availAll = d.compact.available + d.standard.available + d.ev.available;
+            const occupAll = totalAll - availAll;
+
+            document.getElementById('statTotal').textContent = totalAll;
+            document.getElementById('statAvailable').textContent = availAll;
+            document.getElementById('statEV').textContent = d.ev.available;
+            document.getElementById('statStandard').textContent = d.standard.available;
+            document.getElementById('statCompact').textContent = d.compact.available;
+            document.getElementById('statOccupied').textContent = occupAll;
+        }
+
+        // ── Load 2D Architecture Map ───────────────────────────
+        async function loadFullMap(isSilent = false) {
+            const res = await api('/api/spots/full-map');
+            if (!res) return;
+            const data = await res.json();
+            fullMapData = data.levels || [];
+
+            renderLevelPills();
+            render2DGrid();
+        }
+
+        function renderLevelPills() {
+            const container = document.getElementById('levelPillsBar');
+            if (!fullMapData || fullMapData.length === 0) {
+                container.innerHTML = `<div class="level-pill active">No Levels Configured</div>`;
+                return;
+            }
+
+            // Ensure selectedLevel is valid
+            const exists = fullMapData.some(l => l.level === selectedLevel);
+            if (!exists && fullMapData.length > 0) {
+                selectedLevel = fullMapData[0].level;
+            }
+
+            container.innerHTML = fullMapData.map(lvl => {
+                const isActive = lvl.level === selectedLevel ? 'active' : '';
+                return `<div class="level-pill ${isActive}" onclick="selectLevel(${lvl.level})">
+                    <span>🏢 Level ${lvl.level}</span>
+                    <span class="pill-badge">${lvl.available_spots}/${lvl.total_spots} Free</span>
+                </div>`;
+            }).join('');
+        }
+
+        function selectLevel(lvl) {
+            selectedLevel = lvl;
+            renderLevelPills();
+            render2DGrid();
+        }
+
+        function render2DGrid() {
+            const grid = document.getElementById('parkingGrid2D');
+            if (!fullMapData || fullMapData.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">No parking spots configured in garage architecture.</div>`;
+                return;
+            }
+
+            const currentLvlObj = fullMapData.find(l => l.level === selectedLevel) || fullMapData[0];
+            const spots = currentLvlObj.spots || [];
+
+            grid.innerHTML = spots.map(s => {
+                const isOcc = s.is_occupied;
+                const bayClass = isOcc ? 'occupied' : 'vacant';
+                
+                let icon = '🚘';
+                if (s.type === 'ev') icon = '⚡';
+                if (s.type === 'compact') icon = '🚗';
+
+                if (isOcc && s.vehicle) {
+                    const durSec = s.vehicle.duration_seconds || 0;
+                    return `<div class="parking-bay-card occupied" data-spot-id="${s.id}">
+                        <div class="bay-header">
+                            <span class="bay-number">${s.spot_number}</span>
+                            <span class="bay-type-badge bay-type-${s.type}">${s.type.toUpperCase()}</span>
+                        </div>
+                        <div class="bay-content">
+                            <div class="vehicle-plate-box">
+                                <span>${icon}</span>
+                                <span class="vehicle-plate-text">${s.vehicle.plate}</span>
+                            </div>
+                            <div class="vehicle-duration">
+                                <span>⏱️</span>
+                                <span class="live-timer-val" data-sec="${durSec}" data-checkin="${s.vehicle.check_in_time}">
+                                    ${formatSeconds(durSec)}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="bay-footer">
+                            <button class="btn btn-danger btn-sm" style="width:100%; padding:4px 8px; font-size:0.75rem;" onclick="quickCheckOut('${s.vehicle.plate}')">
+                                Check Out →
+                            </button>
+                        </div>
+                    </div>`;
+                } else {
+                    return `<div class="parking-bay-card vacant" data-spot-id="${s.id}">
+                        <div class="bay-header">
+                            <span class="bay-number">${s.spot_number}</span>
+                            <span class="bay-type-badge bay-type-${s.type}">${s.type.toUpperCase()}</span>
+                        </div>
+                        <div class="bay-content">
+                            <div class="vacant-label">
+                                <span style="font-size:1.2rem;">🟢</span> VACANT
+                            </div>
+                        </div>
+                        <div class="bay-footer" style="gap:4px;">
+                            <button class="btn btn-success btn-sm" style="flex:1; padding:4px 6px; font-size:0.75rem;" onclick="quickParkHere('${s.type}')">
+                                + Park
+                            </button>
+                            <button class="btn btn-ghost btn-sm" style="padding:4px; font-size:0.75rem;" title="Delete Spot" onclick="deleteSpot(${s.id}, '${s.spot_number}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>`;
+                }
+            }).join('');
+        }
+
+        // Live Ticker logic
+        function updateLiveTimers() {
+            const timerEls = document.querySelectorAll('.live-timer-val');
+            timerEls.forEach(el => {
+                const checkInIso = el.getAttribute('data-checkin');
+                if (checkInIso) {
+                    const checkInDate = new Date(checkInIso);
+                    const now = new Date();
+                    const diffSec = Math.max(0, Math.floor((now - checkInDate) / 1000));
+                    el.textContent = formatSeconds(diffSec);
+                }
+            });
+        }
+
+        function formatSeconds(sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function quickParkHere(type) {
+            document.getElementById('ciType').value = type === 'ev' ? 'ev' : 'regular';
+            document.getElementById('ciPlate').focus();
+            showToast(`Selected ${type.toUpperCase()} slot. Enter license plate to park!`, 'info');
+        }
+
+        async function quickCheckOut(plate) {
+            if (!confirm(`Confirm checkout for vehicle ${plate}?`)) return;
+            const res = await api('/api/parking/check-out', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plate_number: plate })
+            });
+            if (!res) return;
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`✅ ${plate} checked out — Fee: $${data.fee.toFixed(2)}`, 'success');
+                loadStats();
+                loadFullMap();
+                loadTickets(currentPage);
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+            }
+        }
+
+        async function deleteSpot(spotId, spotNum) {
+            if (!confirm(`Delete spot ${spotNum} from architecture?`)) return;
+            const res = await api(`/api/spots/delete/${spotId}`, { method: 'DELETE' });
+            if (!res) return;
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`✅ Spot ${spotNum} deleted`, 'success');
+                loadStats();
+                loadFullMap();
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+            }
+        }
+
+        // ── Customizer Modal Triggers ─────────────────────────
+        function openCustomizerModal() {
+            document.getElementById('customizerModal').classList.add('open');
+        }
+        function closeCustomizerModal() {
+            document.getElementById('customizerModal').classList.remove('open');
+        }
+
+        function switchModalTab(tab) {
+            if (tab === 'generator') {
+                document.getElementById('massGenForm').style.display = 'block';
+                document.getElementById('singleSpotForm').style.display = 'none';
+                document.getElementById('modalTabGenerator').classList.add('active');
+                document.getElementById('modalTabSingle').classList.remove('active');
+            } else {
+                document.getElementById('massGenForm').style.display = 'none';
+                document.getElementById('singleSpotForm').style.display = 'block';
+                document.getElementById('modalTabGenerator').classList.remove('active');
+                document.getElementById('modalTabSingle').classList.add('active');
+            }
+        }
+
+        // Mass Rebuild Form Submission
+        document.getElementById('massGenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const levels = parseInt(document.getElementById('cfgLevels').value, 10);
+            const spotsPerLvl = parseInt(document.getElementById('cfgSpotsPerLvl').value, 10);
+            const evCount = parseInt(document.getElementById('cfgEV').value, 10);
+            const compactCount = parseInt(document.getElementById('cfgCompact').value, 10);
+
+            const res = await api('/api/spots/configure-layout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    levels: levels,
+                    spots_per_level: spotsPerLvl,
+                    ev_per_level: evCount,
+                    compact_per_level: compactCount
+                })
+            });
+            if (!res) return;
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`🎉 ${data.message}`, 'success');
+                closeCustomizerModal();
+                selectedLevel = 1;
+                loadStats();
+                loadFullMap();
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+            }
+        });
+
+        // Single Spot Form Submission
+        document.getElementById('singleSpotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const spotNum = document.getElementById('spotNum').value.trim();
+            const level = parseInt(document.getElementById('spotLvl').value, 10);
+            const type = document.getElementById('spotType').value;
+
+            const res = await api('/api/spots/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ spot_number: spotNum, level: level, type: type })
+            });
+            if (!res) return;
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`✅ ${data.message}`, 'success');
+                document.getElementById('spotNum').value = '';
+                closeCustomizerModal();
+                selectedLevel = level;
+                loadStats();
+                loadFullMap();
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+            }
+        });
+
+        // ── Check-In Form ──────────────────────────────────────
+        document.getElementById('checkInForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const plate = document.getElementById('ciPlate').value.trim();
+            const vType = document.getElementById('ciType').value;
+
+            const res = await api('/api/parking/check-in', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plate_number: plate, vehicle_type: vType })
+            });
+            if (!res) return;
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(`✅ ${plate} checked in → Spot ${data.spot} (Level ${data.level})`, 'success');
+                document.getElementById('ciPlate').value = '';
+                loadStats();
+                loadFullMap();
+                loadTickets(currentPage);
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+            }
+        });
+
+        // ── Check-Out Form ─────────────────────────────────────
+        document.getElementById('checkOutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const plate = document.getElementById('coPlate').value.trim();
+
+            const res = await api('/api/parking/check-out', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plate_number: plate })
+            });
+            if (!res) return;
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(`✅ ${plate} checked out — Fee: $${data.fee.toFixed(2)} (${data.duration_minutes} min)`, 'success');
+                document.getElementById('coPlate').value = '';
+                loadStats();
+                loadFullMap();
+                loadTickets(currentPage);
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+            }
+        });
+
+        // ── Vehicle Search ─────────────────────────────────────
+        document.getElementById('searchPlate').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchVehicle();
+        });
+
+        async function searchVehicle() {
+            const plate = document.getElementById('searchPlate').value.trim();
+            if (!plate) return;
+
+            const res = await api(`/api/parking/vehicle/${encodeURIComponent(plate)}`);
+            if (!res) return;
+            const data = await res.json();
+            const el = document.getElementById('searchResult');
+
+            if (!res.ok) {
+                el.innerHTML = `<div class="search-result" style="border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05);"><p style="color:var(--accent-rose);">${data.error}</p></div>`;
+                return;
+            }
+
+            const statusBadge = data.currently_parked
+                ? `<span class="badge badge-active">PARKED — Spot ${data.current_spot}</span>`
+                : `<span class="badge badge-completed">NOT PARKED</span>`;
+
+            const typeBadge = `<span class="badge badge-${data.type === 'ev' ? 'ev' : 'standard'}">${data.type.toUpperCase()}</span>`;
+
+            let historyHTML = '';
+            if (data.history.length > 0) {
+                historyHTML = `<div class="table-wrapper" style="margin-top:12px;"><table>
+                    <thead><tr><th>Spot</th><th>Check-In</th><th>Check-Out</th><th>Fee</th><th>Status</th></tr></thead>
+                    <tbody>${data.history.map(t => `<tr>
+                        <td>${t.spot}</td>
+                        <td>${new Date(t.check_in).toLocaleString()}</td>
+                        <td>${t.check_out ? new Date(t.check_out).toLocaleString() : '—'}</td>
+                        <td>${t.fee !== null ? '$' + t.fee.toFixed(2) : '—'}</td>
+                        <td><span class="badge badge-${t.status}">${t.status}</span></td>
+                    </tr>`).join('')}</tbody></table></div>`;
+            }
+
+            el.innerHTML = `<div class="search-result">
+                <div class="vehicle-header">
+                    <span class="plate">${data.plate}</span>
+                    ${typeBadge}
+                    ${statusBadge}
+                </div>
+                <p style="color:var(--text-muted); font-size:0.85rem;">Total visits: ${data.total_visits}</p>
+                ${historyHTML}
+            </div>`;
+        }
+
+        // ── Load Tickets ───────────────────────────────────────
+        async function loadTickets(page = 1) {
+            currentPage = page;
+            const status = document.getElementById('statusFilter').value;
+            let url = `/api/tickets?page=${page}&limit=${LIMIT}&sort_by=${currentSort}&order=${sortOrder}`;
+            if (status) url += `&status=${status}`;
+
+            const res = await api(url);
+            if (!res) return;
+            const data = await res.json();
+            const tbody = document.getElementById('ticketBody');
+
+            if (!data.data || data.data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No tickets found</td></tr>`;
+            } else {
+                tbody.innerHTML = data.data.map(t => `<tr>
+                    <td style="color:var(--text-muted); font-size:0.8rem;">${t.id}</td>
+                    <td style="font-weight:600; color:var(--text-primary); letter-spacing:0.03em;">${t.plate}</td>
+                    <td><span class="badge badge-${t.vehicle_type === 'ev' ? 'ev' : 'standard'}">${t.vehicle_type}</span></td>
+                    <td>${t.spot} <span style="color:var(--text-muted); font-size:0.75rem;">L${t.level}</span></td>
+                    <td>${new Date(t.check_in).toLocaleString()}</td>
+                    <td>${t.check_out ? new Date(t.check_out).toLocaleString() : '<span style="color:var(--text-muted);">—</span>'}</td>
+                    <td style="font-weight:600; color:${t.fee ? 'var(--accent-emerald)' : 'var(--text-muted)'};">${t.fee !== null ? '$' + t.fee.toFixed(2) : '—'}</td>
+                    <td><span class="badge badge-${t.status}">${t.status}</span></td>
+                </tr>`).join('');
+            }
+
+            document.getElementById('pageInfo').textContent = `Page ${data.current_page} of ${data.pages || 1}`;
+            document.getElementById('prevBtn').disabled = !data.has_prev;
+            document.getElementById('nextBtn').disabled = !data.has_next;
+
+            document.getElementById('thCheckIn').className = currentSort === 'check_in_time' ? 'sortable sorted' : 'sortable';
+            document.getElementById('thFee').className = currentSort === 'fee' ? 'sortable sorted' : 'sortable';
+        }
+
+        function toggleSort(field) {
+            if (currentSort === field) {
+                sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSort = field;
+                sortOrder = 'desc';
+            }
+            loadTickets(1);
+        }
+
+        function prevPage() { if (currentPage > 1) loadTickets(currentPage - 1); }
+        function nextPage() { loadTickets(currentPage + 1); }
+
+        // ── Logout ─────────────────────────────────────────────
+        async function handleLogout() {
+            await api('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/';
+        }
+
+        // ── Boot ───────────────────────────────────────────────
+        init();
+    </script>
+</body>
+</html>

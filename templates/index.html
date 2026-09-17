@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Garage Manager — A smart, modern multi-level parking garage management system for busy city centers.">
+    <title>Garage Manager — Smart Parking</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- ── Navbar ──────────────────────────────────────────────── -->
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <span class="logo">🏢</span> Garage Manager
+            </div>
+            <div class="navbar-right">
+                <a href="/login" class="btn btn-ghost btn-sm">Log In</a>
+                <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ── Hero ────────────────────────────────────────────────── -->
+    <div class="container">
+        <section class="hero">
+            <div class="hero-badge">🚀 Built for City-Centre Garages</div>
+            <h1>Parking Made<br><span class="gradient">Effortlessly Smart</span></h1>
+            <p>A real-time, concurrency-safe parking management system with tiered pricing, EV-spot enforcement, and instant vehicle lookup — all in one sleek dashboard.</p>
+            <div class="hero-buttons">
+                <a href="/register" class="btn btn-primary btn-lg">Start Managing →</a>
+                <a href="#features" class="btn btn-ghost btn-lg">Explore Features</a>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── Features ────────────────────────────────────────────── -->
+    <div class="container" id="features">
+        <section class="features-section">
+            <h2 class="section-title">Everything You Need</h2>
+            <p class="section-sub">Purpose-built tools for busy parking attendants and facility managers.</p>
+
+            <div class="features-grid">
+                <div class="card feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Instant Check-In / Check-Out</h3>
+                    <p>Enter a license plate and vehicle type — the system auto-assigns the best available spot. Check-out calculates the fee instantly based on tiered pricing rules.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Concurrency-Safe Booking</h3>
+                    <p>Database-level partial unique indexes guarantee that no spot is ever double-booked, even when two attendants check in simultaneously.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">🔋</div>
+                    <h3>EV Spot Enforcement</h3>
+                    <p>EV vehicles are routed exclusively to charger-equipped spots. Regular vehicles are never placed in EV spots, keeping chargers available.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Smart Tiered Pricing</h3>
+                    <p>First hour at a premium rate, subsequent hours at a discount, with a daily cap. Partial hours always round up — no revenue lost.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Vehicle Lookup</h3>
+                    <p>Search any plate number to instantly see if the vehicle is currently parked, which spot it's in, and its complete visit history.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Paginated History</h3>
+                    <p>Browse through thousands of past tickets with full pagination and sortable columns for check-in time and fee amount.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── Target Audience ─────────────────────────────────────── -->
+    <div class="container">
+        <section class="features-section">
+            <h2 class="section-title">Who It's For</h2>
+            <p class="section-sub">Designed for people who manage physical parking infrastructure.</p>
+            <div class="features-grid">
+                <div class="card feature-card">
+                    <div class="feature-icon">🧑‍💼</div>
+                    <h3>Parking Attendants</h3>
+                    <p>A fast, reliable tool to check vehicles in and out without paperwork. Real-time spot availability means no running between floors to check.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">🏗️</div>
+                    <h3>Facility Managers</h3>
+                    <p>Oversee garage capacity, monitor revenue through ticket history, and ensure EV charger utilization stays optimized.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">🏙️</div>
+                    <h3>City Planners</h3>
+                    <p>Use historical data to understand peak usage patterns and plan infrastructure expansion for growing urban centers.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── Future Features ─────────────────────────────────────── -->
+    <div class="container">
+        <section class="features-section">
+            <h2 class="section-title">What's Next</h2>
+            <p class="section-sub">3 features we'd build next to supercharge the platform.</p>
+            <div class="features-grid">
+                <div class="card feature-card">
+                    <div class="feature-icon">📸</div>
+                    <h3>License Plate Recognition</h3>
+                    <p>Camera-based auto-detection of plates at entry and exit gates. No manual input needed — just drive in and drive out.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Online Pre-Booking</h3>
+                    <p>A consumer-facing mobile app where drivers can reserve a specific spot type in advance, reducing wait times and guaranteeing availability.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Revenue graphs, peak-hour heatmaps, and occupancy forecasting powered by historical ticket data to maximize garage profitability.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── Footer ──────────────────────────────────────────────── -->
+    <footer class="footer">
+        <div class="container">
+            <p>Garage Manager V2 — Built with Flask, SQLite & ❤️</p>
+        </div>
+    </footer>
+
+</body>
+</html>
